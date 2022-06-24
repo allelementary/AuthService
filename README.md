@@ -8,6 +8,7 @@ Auth service is authentication microservice for Trading App
 - Fastapi
 - PostgreSQL
 - SQLALchemy
+- oAuth2
 
 ## Available roles
 

@@ -8,3 +8,4 @@ tasks.xml
 .idea.idea
 ubuntu-server.md
 todo.py
+/tests/test.py

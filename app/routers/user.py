@@ -1,12 +1,8 @@
 from pydantic import UUID4
-
 from fastapi import status, HTTPException, Depends, APIRouter, Response, Security
 from sqlalchemy.orm import Session
-from .. import models, schemas, utils
-from .. import database
-from .. import oauth2
-from ..oauth2 import get_current_user
-from ..schemas import UserOut
+
+from app import models, schemas, utils, database, oauth2
 
 router = APIRouter(
     prefix="/users",
@@ -92,7 +88,7 @@ def update_user(
 
 
 @router.post("/access", status_code=status.HTTP_201_CREATED)
-def access(user: UserOut = Security(get_current_user, scopes=["trade"])):
+def access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["trade"])):
     breakpoint()
     return [{"item_id": "Foo", "owner": user.email}]
 
@@ -101,7 +97,7 @@ def access(user: UserOut = Security(get_current_user, scopes=["trade"])):
 def update_user_permission(
         idx: UUID4,
         db: Session = Depends(database.get_db),
-        current_user: UserOut = Security(get_current_user, scopes=["admin"]),
+        current_user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"]),
 ):
     # todo create types of subscriptions: 'year', 'month', 'free-trial'
     #  implement payment

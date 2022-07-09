@@ -21,6 +21,6 @@ def login(
     if not utils.verify(user_credentials.password, user.password):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid credentials')
 
-    access_token = oauth2.create_access_token(data={"user_id": user.id})
+    access_token = oauth2.create_access_token(
+        data={"user_id": str(user.id), "scopes": user.scopes})
     return {"access_token": access_token, "token_type": "bearer"}
-

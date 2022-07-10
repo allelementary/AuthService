@@ -1,3 +1,5 @@
+from typing import Dict
+
 from pydantic import UUID4
 from fastapi import status, HTTPException, Depends, APIRouter, Response, Security
 from sqlalchemy.orm import Session
@@ -87,31 +89,50 @@ def update_user(
     return user_query.first()
 
 
-@router.post("/access", status_code=status.HTTP_201_CREATED)
-def access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["trade"])):
-    breakpoint()
+@router.post("/trade-access", status_code=status.HTTP_201_CREATED)
+def trade_access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["trade"])):
     return [{"item_id": "Foo", "owner": user.email}]
 
 
-@router.patch("/update-permission/{id}", response_model=schemas.UserPermission)
+@router.post("/admin-access", status_code=status.HTTP_201_CREATED)
+def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"])):
+    return [{"item_id": "Foo", "owner": user.email}]
+
+
+@router.patch("/update-permission/{id}", status_code=status.HTTP_201_CREATED, response_model=schemas.UserPermission)
 def update_user_permission(
         idx: UUID4,
+        scope: str,
         db: Session = Depends(database.get_db),
         current_user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"]),
-):
-    # todo create types of subscriptions: 'year', 'month', 'free-trial'
-    #  implement payment
+        denied_access: bool = False
+) -> Dict:
     """
     User scopes:
     - registered: account created, email does not confirmed yet
     - confirmed: email confirmed
     - trade: account has trade permission
     - admin: account has admin permission
-    #  implement payment
+
+    Update user permissions by adding scope
+    :param idx: id of user to update rights
+    :param scope: string scope adding to user scopes
+                   options: ["trade", "admin"]
+    :param db: database session
+    :param current_user: check current user permissions, should have `admin` scopes
+    :param denied_access: False if enable access, True if denied
+    :return dict `user_id`: user_id, `scopes`: user_scopes
     """
+    current_user_id = current_user.id
+
     user_query = db.query(models.User).filter(models.User.id == idx)
-    user_query.update({"scopes": ["trade"]}, synchronize_session=False)
     user = user_query.first()
+
+    if denied_access:
+        scope = user.scopes.remove(scope)
+
+    user_query.update({"scopes": [scope]}, synchronize_session=False)
+    db.commit()
     return {"user_id": user.id, "scopes": user.scopes}
 
 # 597f6b38-531d-49b5-b8a9-9f3ce7b901c8

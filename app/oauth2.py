@@ -61,6 +61,7 @@ async def get_current_user(
             raise credentials_exception
         token_scopes = payload.get("scopes", [])
         token_data = schemas.TokenData(scopes=token_scopes, id=user_id)
+        breakpoint()
     except (JWTError, ValidationError):
         raise credentials_exception
     user = _get_user(db, idx=token_data.id)

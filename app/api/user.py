@@ -1,24 +1,17 @@
 from typing import Dict
-
 from pydantic import UUID4
-from fastapi import status, HTTPException, Depends, APIRouter, Response, Security
+from fastapi import status, HTTPException, Depends, Response, Security
 from sqlalchemy.orm import Session
 
 from app import models, schemas, utils, database, oauth2
 
-router = APIRouter(
-    prefix="/users",
-    tags=['CRUD Users']
-)
 
-
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     user_exists = db.query(models.User).filter(models.User.email == user.email).first()
     if user_exists:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"User with email: {user.email} already not exists"
+            detail=f"User with email: {user.email} already exists"
         )
 
     hashed_password = utils.hash_pass(user.password)
@@ -31,7 +24,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     return new_user
 
 
-@router.get('/{idx}', response_model=schemas.UserOut)
 def get_user(idx: UUID4, db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.id == idx).first()
 
@@ -43,7 +35,6 @@ def get_user(idx: UUID4, db: Session = Depends(database.get_db)):
     return user
 
 
-@router.delete("/{idx}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
         idx: UUID4,
         db: Session = Depends(database.get_db),
@@ -65,7 +56,6 @@ def delete_user(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/{id}", response_model=schemas.UserCreate)
 def update_user(
         idx: UUID4,
         updated_user: schemas.UserCreate,
@@ -89,17 +79,14 @@ def update_user(
     return user_query.first()
 
 
-@router.post("/trade-access", status_code=status.HTTP_201_CREATED)
-def trade_access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["trade"])):
-    return [{"item_id": "Foo", "owner": user.email}]
+def trade_access(user: schemas.UserPermission = Security(oauth2.get_current_user, scopes=["trade"])):
+    return [{"item_id": "Foo", "scopes": user.scopes}]
 
 
-@router.post("/admin-access", status_code=status.HTTP_201_CREATED)
 def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"])):
     return [{"item_id": "Foo", "owner": user.email}]
 
 
-@router.patch("/update-permission/{id}", status_code=status.HTTP_201_CREATED, response_model=schemas.UserPermission)
 def update_user_permission(
         idx: UUID4,
         scope: str,
@@ -109,12 +96,12 @@ def update_user_permission(
 ) -> Dict:
     """
     User scopes:
-    - registered: account created, email does not confirmed yet
+    - registered: account created, email does not confirm yet
     - confirmed: email confirmed
     - trade: account has trade permission
     - admin: account has admin permission
 
-    Update user permissions by adding scope
+    Update user permissions by adding or removing scopes
     :param idx: id of user to update rights
     :param scope: string scope adding to user scopes
                    options: ["trade", "admin"]
@@ -127,7 +114,11 @@ def update_user_permission(
 
     user_query = db.query(models.User).filter(models.User.id == idx)
     user = user_query.first()
-
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {idx} does not exist"
+        )
     if denied_access:
         scope = user.scopes.remove(scope)
 

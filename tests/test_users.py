@@ -4,17 +4,17 @@ from app import schemas
 from app.config import settings
 
 
-# def test_root(client):
-#     res = client.get('/')
-#     assert res.json().get('message') == 'Hello World!!!'
-#     assert res.status_code == 200
+def test_root(client):
+    res = client.get('/')
+    # assert res.json().get('message') == 'Hello World!!!'
+    assert res.status_code == 200
 
 
 def test_create_user(client):
     email = 'hello123@gmail.com'
     password = 'password123'
     res = client.post(
-        '/users/', json={'email': email, 'password': password})
+        '/users', json={'email': email, 'password': password})
     new_user = schemas.UserOut(**res.json())
     assert new_user.email == email
     assert res.status_code == 201
@@ -22,7 +22,8 @@ def test_create_user(client):
 
 def test_login_user(test_user, client):
     res = client.post(
-        '/login', data={'username': test_user['email'], 'password': test_user['password']})
+        '/login', data={'username': test_user['email'],
+                        'password': test_user['password']})
     login_res = schemas.Token(**res.json())
     payload = jwt.decode(login_res.access_token, settings.secret_key, [settings.algorithm])
     idx: str = payload.get("user_id")
@@ -42,7 +43,7 @@ def test_incorrect_login(test_user, client, email, password, status_code):
     res = client.post("/login", data={'username': email, 'password': password})
 
     assert res.status_code == status_code
-    # assert res.json().get('detail') == 'Invalid credentials'
+    assert res.json().get('detail') == 'Invalid credentials'
 
 
 @pytest.mark.parametrize(

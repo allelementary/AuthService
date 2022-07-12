@@ -9,3 +9,4 @@ tasks.xml
 ubuntu-server.md
 todo.py
 /tests/test.py
+.pytest_cache

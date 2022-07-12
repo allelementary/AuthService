@@ -80,7 +80,7 @@ router.add_api_route(
 )
 
 router.add_api_route(
-    "/trade-access/",
+    "/test-trade-access/",
     methods=["GET"],
     endpoint=user.trade_access,
     status_code=status.HTTP_200_OK,
@@ -91,7 +91,7 @@ router.add_api_route(
 )
 
 router.add_api_route(
-    "/admin-access/",
+    "/test-admin-access/",
     methods=["GET"],
     endpoint=user.admin_access,
     status_code=status.HTTP_200_OK,

@@ -4,6 +4,8 @@
 #
 #    pip-compile
 #
+alembic==1.8.0
+    # via -r requirements.in
 anyio==3.6.1
     # via starlette
 asgiref==3.5.2
@@ -34,6 +36,10 @@ idna==3.3
     # via
     #   anyio
     #   email-validator
+mako==1.2.1
+    # via alembic
+markupsafe==2.1.1
+    # via mako
 passlib==1.7.4
     # via -r requirements.in
 pep517==0.12.0
@@ -63,7 +69,9 @@ six==1.16.0
 sniffio==1.2.0
     # via anyio
 sqlalchemy==1.4.37
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   alembic
 starlette==0.19.1
     # via fastapi
 tomli==2.0.1

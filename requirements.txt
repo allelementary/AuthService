@@ -10,6 +10,8 @@ anyio==3.6.1
     # via starlette
 asgiref==3.5.2
     # via uvicorn
+asyncpg==0.26.0
+    # via -r requirements.in
 bcrypt==3.2.2
     # via -r requirements.in
 cffi==1.15.1
@@ -40,6 +42,8 @@ mako==1.2.1
     # via alembic
 markupsafe==2.1.1
     # via mako
+orjson==3.7.7
+    # via -r requirements.in
 passlib==1.7.4
     # via -r requirements.in
 pep517==0.12.0

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas, utils, database, oauth2
 
 
-def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_session)):
     user_exists = db.query(models.User).filter(models.User.email == user.email).first()
     if user_exists:
         raise HTTPException(
@@ -24,7 +24,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     return new_user
 
 
-def get_user(idx: UUID4, db: Session = Depends(database.get_db)):
+def get_user(idx: UUID4, db: Session = Depends(database.get_session)):
     user = db.query(models.User).filter(models.User.id == idx).first()
 
     if not user:
@@ -37,7 +37,7 @@ def get_user(idx: UUID4, db: Session = Depends(database.get_db)):
 
 def delete_user(
         idx: UUID4,
-        db: Session = Depends(database.get_db),
+        db: Session = Depends(database.get_session),
         current_user: int = Depends(oauth2.get_current_user)
 ):
     user = db.query(models.User).filter(models.User.id == idx).first()
@@ -59,7 +59,7 @@ def delete_user(
 def update_user(
         idx: UUID4,
         updated_user: schemas.UserCreate,
-        db: Session = Depends(database.get_db),
+        db: Session = Depends(database.get_session),
         current_user: int = Depends(oauth2.get_current_user)
 ):
     user_query = db.query(models.User).filter(models.User.id == idx)
@@ -90,7 +90,7 @@ def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scope
 def update_user_permission(
         idx: UUID4,
         scope: str,
-        db: Session = Depends(database.get_db),
+        db: Session = Depends(database.get_session),
         current_user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"]),
         denied_access: bool = False
 ) -> Dict:

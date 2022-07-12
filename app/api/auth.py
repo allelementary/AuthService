@@ -8,7 +8,7 @@ from app import database, models, utils, oauth2
 
 def login(
         user_credentials: OAuth2PasswordRequestForm = Depends(),
-        db: Session = Depends(database.get_db)
+        db: Session = Depends(database.get_session())
 ) -> Dict:
     user = db.query(models.User).filter(models.User.email == user_credentials.username).first()
 

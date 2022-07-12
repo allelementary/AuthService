@@ -2,30 +2,49 @@ from fastapi.testclient import TestClient
 from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database import get_db, Base
+from app.database import get_session, Base
 from app.config import settings
 from app.oauth2 import create_access_token
 from app import models
+from alembic import command, config as alembic_config
 import pytest
 
-
+# TODO finish db
 SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
                           f'{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(scope="session")
-def session():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    print('Create database')
-    db = TestingSessionLocal()
+@pytest.fixture(scope='session', autouse=True)
+def db_session(prepare_config):
+    from app.config import settings as config
+    from app.database import create_db, drop_db, finish_database_preparation, get_session
 
-    try:
-        yield db
-    finally:
-        db.close()
+    drop_db(SQLALCHEMY_DATABASE_URL, config.database_name)
+    create_db(SQLALCHEMY_DATABASE_URL, config.database_name)
+    finish_database_preparation(config.DB_DSN_TEST)
+
+    alembic_conf = alembic_config.Config('alembic.ini')
+    alembic_conf.set_section_option(
+        'alembic', 'sqlalchemy.url', config.DB_DSN_TEST)
+    print(f' Upgrading database {config.DB_DSN_TEST}')
+    command.upgrade(alembic_conf, 'head')
+
+    yield get_session()
+
+
+# @pytest.fixture(scope="session")
+# def session():
+#     Base.metadata.drop_all(bind=engine)
+#     Base.metadata.create_all(bind=engine)
+#     print('Create database')
+#     db = TestingSessionLocal()
+#
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 
 @pytest.fixture(scope="session")
@@ -37,11 +56,11 @@ def client(session):
         finally:
             session.close()
 
-    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_session] = override_get_db
     yield TestClient(app)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_user(client):
     user_data = {'email': 'hello123@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
@@ -51,7 +70,7 @@ def test_user(client):
     return new_user
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_user2(client):
     user_data = {'email': 'hello321@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
@@ -61,7 +80,7 @@ def test_user2(client):
     return new_user
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_trader(client):
     user_data = {'email': 'hello123@gmail.com', 'password': 'password123',
                  'scopes': ['trade']}
@@ -72,7 +91,7 @@ def test_trader(client):
     return new_admin
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_admin(client):
     user_data = {'email': 'hello123@gmail.com', 'password': 'password123',
                  'scopes': ['trade', 'admin']}
@@ -83,7 +102,7 @@ def test_admin(client):
     return new_admin
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_trade_access(client):
     user_data = {'email': 'hello123@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)

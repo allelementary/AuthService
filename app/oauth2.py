@@ -43,7 +43,7 @@ def verify_access_token(token: str, credentials_exception: HTTPException):
 async def get_current_user(
         security_scopes: SecurityScopes,
         token: str = Depends(oauth2_scheme),
-        db: Session = Depends(database.get_db),
+        db: Session = Depends(database.get_session),
 ):
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'

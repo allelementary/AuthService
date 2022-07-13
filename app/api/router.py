@@ -68,7 +68,7 @@ router.add_api_route(
 )
 
 router.add_api_route(
-    "/update-permission/{id}",
+    "/update-permission/{idx}",
     methods=["PATCH"],
     endpoint=user.update_user_permission,
     status_code=status.HTTP_201_CREATED,

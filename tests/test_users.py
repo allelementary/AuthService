@@ -57,12 +57,24 @@ def test_incorrect_login(test_user, client, email, password, status_code):
 def test_update_user_permission(
         test_user, authorized_admin_client,
         scope, user_scopes, denied_access):
-    response = authorized_admin_client.post(
-        f"/update-permission/{test_user['id']}",
-        data={"scope": scope, "denied_access": denied_access}
-    )
+    url = f"/update-permission/{test_user['id']}"
+    response = authorized_admin_client.patch(url, data={"scope": scope, "denied_access": denied_access})
+    user = authorized_admin_client.get(f"/users/{test_user['id']}").json()
     assert response.status_code == 201
-    assert test_user.scopes == user_scopes
+    assert user["scopes"] == user_scopes
+
+
+# def test_update_user_permission(
+#         test_user, authorized_admin_client,
+#         ):
+#     url = f"/update-permission/{test_user['id']}"
+#     response = authorized_admin_client.patch(
+#         url,
+#         data={"scope": "trade", "denied_access": False}
+#     )
+#     user = authorized_admin_client.get(f"/users/{test_user['id']}")
+#     assert response.status_code == 201
+#     assert user.json()["scopes"] == ["trade"]
 
 
 def test_trade_access(authorized_trade_client):

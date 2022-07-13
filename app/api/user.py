@@ -1,6 +1,6 @@
 from typing import Dict
 from pydantic import UUID4
-from fastapi import status, HTTPException, Depends, Response, Security
+from fastapi import status, HTTPException, Depends, Response, Security, Path
 from sqlalchemy.orm import Session
 
 from app import models, schemas, utils, database, oauth2
@@ -88,8 +88,8 @@ def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scope
 
 
 def update_user_permission(
-        idx: UUID4,
-        scope: str,
+        idx: UUID4 = Path(...),
+        scope: str = "trade",
         db: Session = Depends(database.get_session),
         current_user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"]),
         denied_access: bool = False
@@ -120,10 +120,13 @@ def update_user_permission(
             detail=f"User with id: {idx} does not exist"
         )
     if denied_access:
+        # todo not working
+        #  able to only enable access
+        #  use put?
         scope = user.scopes.remove(scope)
 
     user_query.update({"scopes": [scope]}, synchronize_session=False)
     db.commit()
-    return {"user_id": user.id, "scopes": user.scopes}
+    return {"user_id": user.id, "scopes": [scope]}
 
 # 597f6b38-531d-49b5-b8a9-9f3ce7b901c8

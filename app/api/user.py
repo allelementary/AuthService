@@ -69,7 +69,7 @@ def update_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id: {idx} does not exist"
         )
-    if user.owner_id != current_user.id:
+    if user.id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to perform requested action")

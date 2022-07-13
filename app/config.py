@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     DB_NAME = 'auth_service'
     DB_NAME_TEST = f'{DB_NAME}_test'
     DB_NAME_ROOT = 'postgres'
-    DB_CONNECTION: str = "postgres://postgres:postgres@localhost:5432/"
-    DB_DSN = f'{DB_CONNECTION}{DB_NAME}'
-    DB_DSN_TEST = f'{DB_CONNECTION}{DB_NAME_TEST}'
-    DB_DSN_ROOT = f'{DB_CONNECTION}{DB_NAME_ROOT}'
+    # DB_CONNECTION: str = "postgresql://postgres:postgres@localhost:5432/"
+    # DB_DSN = f'{DB_CONNECTION}{DB_NAME}'
+    # DB_DSN_TEST = f'{DB_CONNECTION}{DB_NAME_TEST}'
+    # DB_DSN_ROOT = f'{DB_CONNECTION}{DB_NAME_ROOT}'
 
     # connection timeout and 1/2 of a command timeout
     DB_TIMEOUT: float = 5

@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database import get_session, Base
+from app.database import get_session, Base, SQLALCHEMY_DATABASE_URL, SQL_URL
 from app.config import settings
 from app.oauth2 import create_access_token
 from app import models
@@ -10,44 +10,24 @@ from alembic import command, config as alembic_config
 import pytest
 
 # TODO finish db
-SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
-                          f'{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SQLALCHEMY_DATABASE_URL_TEST = f'{SQLALCHEMY_DATABASE_URL}_test'
+engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(scope='session', autouse=True)
-def db_session(prepare_config):
-    from app.config import settings as config
-    from app.database import create_db, drop_db, finish_database_preparation, get_session
-
-    drop_db(SQLALCHEMY_DATABASE_URL, config.database_name)
-    create_db(SQLALCHEMY_DATABASE_URL, config.database_name)
-    finish_database_preparation(config.DB_DSN_TEST)
-
-    alembic_conf = alembic_config.Config('alembic.ini')
-    alembic_conf.set_section_option(
-        'alembic', 'sqlalchemy.url', config.DB_DSN_TEST)
-    print(f' Upgrading database {config.DB_DSN_TEST}')
-    command.upgrade(alembic_conf, 'head')
-
-    yield get_session()
+@pytest.fixture()
+def session():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    print('Create database')
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-# @pytest.fixture(scope="session")
-# def session():
-#     Base.metadata.drop_all(bind=engine)
-#     Base.metadata.create_all(bind=engine)
-#     print('Create database')
-#     db = TestingSessionLocal()
-#
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def client(session):
     def override_get_db():
         print('Overwrite database')
@@ -60,9 +40,9 @@ def client(session):
     yield TestClient(app)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def test_user(client):
-    user_data = {'email': 'hello123@gmail.com', 'password': 'password123'}
+    user_data = {'email': 'hello1234@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
     new_user = res.json()
@@ -70,7 +50,7 @@ def test_user(client):
     return new_user
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def test_user2(client):
     user_data = {'email': 'hello321@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
@@ -80,9 +60,9 @@ def test_user2(client):
     return new_user
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def test_trader(client):
-    user_data = {'email': 'hello123@gmail.com', 'password': 'password123',
+    user_data = {'email': 'hello1235@gmail.com', 'password': 'password123',
                  'scopes': ['trade']}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
@@ -91,9 +71,9 @@ def test_trader(client):
     return new_admin
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def test_admin(client):
-    user_data = {'email': 'hello123@gmail.com', 'password': 'password123',
+    user_data = {'email': 'hello1230@gmail.com', 'password': 'password123',
                  'scopes': ['trade', 'admin']}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
@@ -122,6 +102,34 @@ def authorized_client(client, token):
     client.headers = {
         **client.headers,
         "Authorization": f"Bearer {token}"
+    }
+    return client
+
+
+@pytest.fixture
+def trade_token(test_trader):
+    return create_access_token({"user_id": test_trader["id"], "scopes": ["trade"]})
+
+
+@pytest.fixture
+def authorized_trade_client(client, trade_token):
+    client.headers = {
+        **client.headers,
+        "Authorization": f"Bearer {trade_token}"
+    }
+    return client
+
+
+@pytest.fixture
+def admin_token(test_admin):
+    return create_access_token({"user_id": test_admin["id"], "scopes": ["admin"]})
+
+
+@pytest.fixture
+def authorized_admin_client(client, admin_token):
+    client.headers = {
+        **client.headers,
+        "Authorization": f"Bearer {admin_token}"
     }
     return client
 

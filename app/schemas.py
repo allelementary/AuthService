@@ -17,6 +17,7 @@ class UserOut(BaseModel):
     api_key: Optional[str]
     api_secret: Optional[str]
     chat_id: Optional[str]
+    scopes: Optional[List]
     created_at: datetime
 
     class Config:

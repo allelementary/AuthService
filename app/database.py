@@ -16,6 +16,9 @@ from app.config import settings
 SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
                           f'{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
 
+SQL_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
+                          f'{settings.database_hostname}:{settings.database_port}/'
+
 
 _pool: Optional[asyncpg.pool.Pool] = None
 _ph_catcher = re.compile('\\{(\\w+)\\}')
@@ -24,34 +27,34 @@ AUTH_SCHEMA = 'auth_service'
 
 # region sqla settings
 meta_data = MetaData(schema=AUTH_SCHEMA)
-Base = declarative_base(metadata=meta_data)
+# Base = declarative_base(metadata=meta_data)
 __db_session = None
 
-# engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 #
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 #
-# Base = declarative_base()
-#
-#
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
+Base = declarative_base()
 
 
 def get_session():
-    # from config.conf import config
-    global __db_session
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-    if not __db_session:
-        print('created app connection to db with dsn ', settings.database_username)
-        engine = create_engine(settings.database_username)
-        __db_session = sessionmaker(bind=engine)()
 
-    return __db_session
+# def get_session():
+#     # from config.conf import config
+#     global __db_session
+#
+#     if not __db_session:
+#         print('created app connection to db with dsn ', SQLALCHEMY_DATABASE_URL)
+#         engine = create_engine(SQLALCHEMY_DATABASE_URL)
+#         __db_session = sessionmaker(bind=engine)()
+#
+#     return __db_session
 
 
 # endregion
@@ -122,7 +125,7 @@ async def get_connection(loop: asyncio.AbstractEventLoop = None) \
     conn: Optional[asyncpg.Connection] = None
 
     try:
-        _pool = await connect(loop=loop, db_dsn=settings.DB_DSN)
+        _pool = await connect(loop=loop, db_dsn=SQLALCHEMY_DATABASE_URL)
         conn = await _pool.acquire()
         yield cast(asyncpg.Connection, conn)
     finally:
@@ -185,15 +188,15 @@ def drop_db(root_pg_dsn: str, db_name: str):
     _engine = create_engine(root_pg_dsn, isolation_level='AUTOCOMMIT')
     _session = sessionmaker(bind=_engine)()
 
-    text = f'''
-        SELECT pg_terminate_backend(pg_stat_activity.pid)
-        FROM pg_stat_activity
-        WHERE pg_stat_activity.datname = '{db_name}'
-        AND pid <> pg_backend_pid();
-        '''
-    _session.execute(text)
+    # text = f'''
+    #     SELECT pg_terminate_backend(pg_stat_activity.pid)
+    #     FROM pg_stat_activity
+    #     WHERE pg_stat_activity.datname = '{db_name}'
+    #     AND pid <> pg_backend_pid();
+    #     '''
+    # _session.execute(text)
 
-    _session.execute(f'DROP DATABASE IF EXISTS {db_name};')
+    _session.execute(f'DROP DATABASE IF EXISTS {db_name}')
     result = _session.execute(f'''
         SELECT datname 
         FROM pg_catalog.pg_database 
@@ -227,7 +230,6 @@ def finish_database_preparation(pg_dsn: str):
     _engine = create_engine(pg_dsn, isolation_level='AUTOCOMMIT')
     _session = sessionmaker(bind=_engine)()
 
-    _session.execute('CREATE SCHEMA IF NOT EXISTS happifiers_service')
-    _session.execute('CREATE SCHEMA IF NOT EXISTS tags_service')
+    _session.execute('CREATE SCHEMA IF NOT EXISTS auth_service')
 
     print(f'Database {pg_dsn} created')

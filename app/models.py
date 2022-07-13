@@ -15,3 +15,6 @@ class User(Base):
     chat_id = Column(String, nullable=True)
     scopes = Column(ARRAY(String), nullable=True, server_default="{}")
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+    def __repr__(self):
+        return f"{self.__tablename__}"

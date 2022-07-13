@@ -32,8 +32,8 @@ def upgrade():
         sa.Column('created_at', sa.TIMESTAMP(timezone=True),
                   server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('email')
-        )
+        sa.UniqueConstraint('email'),
+    )
 
 
 def downgrade():

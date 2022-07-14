@@ -1,6 +1,6 @@
 from typing import Dict
 from pydantic import UUID4
-from fastapi import status, HTTPException, Depends, Response, Security, Path
+from fastapi import status, HTTPException, Depends, Response, Security, Path, Query
 from sqlalchemy.orm import Session
 
 from app import models, schemas, utils, database, oauth2
@@ -88,11 +88,11 @@ def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scope
 
 
 def update_user_permission(
+        scope: str = Query(...),
+        denied_access: bool = Query(...),
         idx: UUID4 = Path(...),
-        scope: str = "trade",
         db: Session = Depends(database.get_session),
         current_user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"]),
-        denied_access: bool = False
 ) -> Dict:
     """
     User scopes:
@@ -111,7 +111,26 @@ def update_user_permission(
     :return dict `user_id`: user_id, `scopes`: user_scopes
     """
     current_user_id = current_user.id
+    if denied_access:
+        user = disable_access(idx, db)
+    else:
+        user = enable_access(idx, scope, db)
+    return {"user_id": user.id, "scopes": [scope]}
 
+
+def enable_access(
+    idx: UUID4,
+    scope: str,
+    db: Session,
+):
+    """
+    Enable user access by adding scopes
+    :param idx: id of user to update rights
+    :param scope: string scope adding to user scopes
+                   options: ["trade", "admin"]
+    :param db: database session
+    :return: user
+    """
     user_query = db.query(models.User).filter(models.User.id == idx)
     user = user_query.first()
     if user is None:
@@ -119,14 +138,30 @@ def update_user_permission(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id: {idx} does not exist"
         )
-    if denied_access:
-        # todo not working
-        #  able to only enable access
-        #  use put?
-        scope = user.scopes.remove(scope)
-
     user_query.update({"scopes": [scope]}, synchronize_session=False)
     db.commit()
-    return {"user_id": user.id, "scopes": [scope]}
+    return user
+
+
+def disable_access(
+        idx: UUID4,
+        db: Session,
+):
+    """
+    Disable user access by removing scopes
+    :param idx: id of user to update rights
+    :param db: database session
+    :return: user
+    """
+    user_query = db.query(models.User).filter(models.User.id == idx)
+    user = user_query.first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {idx} does not exist"
+        )
+    user_query.update({"scopes": []}, synchronize_session=False)
+    db.commit()
+    return user
 
 # 597f6b38-531d-49b5-b8a9-9f3ce7b901c8

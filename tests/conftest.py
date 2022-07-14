@@ -2,20 +2,16 @@ from fastapi.testclient import TestClient
 from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database import get_session, Base, SQLALCHEMY_DATABASE_URL, SQL_URL
-from app.config import settings
+from app.database import get_session, Base, SQLALCHEMY_DATABASE_URL
 from app.oauth2 import create_access_token
-from app import models
-from alembic import command, config as alembic_config
 import pytest
 
-# TODO finish db
 SQLALCHEMY_DATABASE_URL_TEST = f'{SQLALCHEMY_DATABASE_URL}_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def session():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -27,7 +23,7 @@ def session():
         db.close()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def client(session):
     def override_get_db():
         print('Overwrite database')
@@ -40,7 +36,7 @@ def client(session):
     yield TestClient(app)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_user(client):
     user_data = {'email': 'hello1234@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
@@ -50,7 +46,7 @@ def test_user(client):
     return new_user
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_user2(client):
     user_data = {'email': 'hello321@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)
@@ -60,7 +56,7 @@ def test_user2(client):
     return new_user
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_trader(client):
     user_data = {'email': 'hello1235@gmail.com', 'password': 'password123',
                  'scopes': ['trade']}
@@ -71,7 +67,7 @@ def test_trader(client):
     return new_admin
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_admin(client):
     user_data = {'email': 'hello1230@gmail.com', 'password': 'password123',
                  'scopes': ['trade', 'admin']}
@@ -82,7 +78,7 @@ def test_admin(client):
     return new_admin
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_trade_access(client):
     user_data = {'email': 'hello123@gmail.com', 'password': 'password123'}
     res = client.post("/users", json=user_data)

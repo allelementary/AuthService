@@ -15,7 +15,8 @@ router.add_api_route(
     response_model=schemas.Token,
     tags=['Authentication'],
     responses={200: {'detail': 'Successfully logged in'},
-               403: {'detail': 'Invalid credentials'}},
+               403: {'detail': 'Invalid credentials'},
+               422: {'detail': 'Required field missing'}},
 )
 
 router.add_api_route(

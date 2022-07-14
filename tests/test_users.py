@@ -2,11 +2,11 @@ import pytest
 from jose import jwt
 from app import schemas
 from app.config import settings
+# todo write tests on update_user, get_user
 
 
 def test_root(client):
     res = client.get('/')
-    # assert res.json().get('message') == 'Hello World!!!'
     assert res.status_code == 200
 
 
@@ -41,9 +41,7 @@ def test_login_user(test_user, client):
 ])
 def test_incorrect_login(test_user, client, email, password, status_code):
     res = client.post("/login", data={'username': email, 'password': password})
-
     assert res.status_code == status_code
-    # assert res.json().get('detail') == 'Invalid credentials'
 
 
 @pytest.mark.parametrize(

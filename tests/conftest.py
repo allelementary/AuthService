@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import get_session, Base, SQLALCHEMY_DATABASE_URL
 from app.oauth2 import create_access_token
 import pytest
+# todo Create default users (user, trader, admin) try to delete user by another user
 
 SQLALCHEMY_DATABASE_URL_TEST = f'{SQLALCHEMY_DATABASE_URL}_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
@@ -128,35 +129,3 @@ def authorized_admin_client(client, admin_token):
         "Authorization": f"Bearer {admin_token}"
     }
     return client
-
-
-# @pytest.fixture
-# def test_posts(test_user, session, test_user2):
-#     posts_data = [{
-#         "title": "first_title",
-#         "content": "first_content",
-#         "owner_id": test_user['id']
-#     }, {
-#         "title": "2nd_title",
-#         "content": "2nd_content",
-#         "owner_id": test_user['id']
-#     }, {
-#         "title": "3rd_title",
-#         "content": "3rd_content",
-#         "owner_id": test_user['id']
-#     }, {
-#         "title": "3rd_title",
-#         "content": "3rd_content",
-#         "owner_id": test_user2['id']
-#     }]
-#
-#     def create_post_model(post):
-#         return models.Post(**post)
-#
-#     post_map = map(create_post_model, posts_data)
-#     posts = list(post_map)
-#
-#     session.add_all(posts)
-#     session.commit()
-#     posts = session.query(models.Post).all()
-#     return posts

@@ -20,4 +20,4 @@ app.include_router(router.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World successfully deployd from CI/CD pipeline"}
+    return {"message": "Authentication API Service"}

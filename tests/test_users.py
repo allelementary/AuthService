@@ -46,8 +46,6 @@ def test_incorrect_login(test_user, client, email, password, status_code):
 
 @pytest.mark.parametrize(
     "scope, user_scopes, denied_access", [
-        (["trade"], ["trade"], False),
-        (["trade"], [], True),
         (["admin"], ["admin"], False),
         (["admin"], [], True),
     ]
@@ -60,11 +58,6 @@ def test_update_user_permission(
     user = authorized_admin_client.get(f"/users/{test_user['id']}").json()
     assert response.status_code == 201
     assert user["scopes"] == user_scopes
-
-
-def test_trade_access(authorized_trade_client):
-    response = authorized_trade_client.get("/test-trade-access")
-    assert response.status_code == 200
 
 
 def test_admin_access(authorized_admin_client):

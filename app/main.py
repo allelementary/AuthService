@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import models
-from app.api import auth, user, router
-from app.database import get_session
-
-# models.Base.metadata.create_all(bind=engine)
+from app.api import router
 
 app = FastAPI()
 
@@ -24,4 +20,4 @@ app.include_router(router.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World successfully deployd from CI/CD pipeline"}
+    return {"message": "Authentication API Service"}

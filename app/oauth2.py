@@ -11,7 +11,7 @@ from app import schemas, database, models, config
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl='login',
-    scopes={"trade": "create and run trade systems", "admin": "ultimate access"},
+    scopes={"admin": "ultimate access"},
 )
 
 SECRET_KEY = config.settings.secret_key

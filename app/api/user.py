@@ -79,10 +79,6 @@ def update_user(
     return user_query.first()
 
 
-def trade_access(user: schemas.UserPermission = Security(oauth2.get_current_user, scopes=["trade"])):
-    return [{"item_id": "Foo", "scopes": user.scopes}]
-
-
 def admin_access(user: schemas.UserOut = Security(oauth2.get_current_user, scopes=["admin"])):
     return [{"item_id": "Foo", "owner": user.email}]
 
@@ -98,13 +94,12 @@ def update_user_permission(
     User scopes:
     - registered: account created, email does not confirm yet
     - confirmed: email confirmed
-    - trade: account has trade permission
     - admin: account has admin permission
 
     Update user permissions by adding or removing scopes
     :param idx: id of user to update rights
     :param scope: string scope adding to user scopes
-                   options: ["trade", "admin"]
+                   options: ["admin"]
     :param db: database session
     :param current_user: check current user permissions, should have `admin` scopes
     :param denied_access: False if enable access, True if denied
@@ -127,7 +122,7 @@ def enable_access(
     Enable user access by adding scopes
     :param idx: id of user to update rights
     :param scope: string scope adding to user scopes
-                   options: ["trade", "admin"]
+                   options: ["admin"]
     :param db: database session
     :return: user
     """

@@ -6,17 +6,11 @@ from datetime import datetime
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    api_key: Optional[str]
-    api_secret: Optional[str]
-    chat_id: Optional[int]
 
 
 class UserOut(BaseModel):
     id: UUID4
     email: EmailStr
-    api_key: Optional[str]
-    api_secret: Optional[str]
-    chat_id: Optional[str]
     scopes: Optional[List]
     created_at: datetime
 

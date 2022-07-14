@@ -4,13 +4,13 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
 
-SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
+DB_URI = f'postgresql://{settings.database_username}:{settings.database_password}@' \
                           f'{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
 
-SQL_URL = f'postgresql://{settings.database_username}:{settings.database_password}@' \
+DB_URI_TEST = f'postgresql://{settings.database_username}:{settings.database_password}@' \
                           f'{settings.database_hostname}:{settings.database_port}/'
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DB_URI)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

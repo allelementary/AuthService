@@ -82,17 +82,6 @@ router.add_api_route(
 )
 
 router.add_api_route(
-    "/test-trade-access",
-    methods=["GET"],
-    endpoint=user.trade_access,
-    status_code=status.HTTP_200_OK,
-    tags=['Permissions'],
-    responses={200: {'detail': 'User has trade access'},
-               403: {'detail': 'Not authorized to perform requested action'},
-               },
-)
-
-router.add_api_route(
     "/test-admin-access",
     methods=["GET"],
     endpoint=user.admin_access,

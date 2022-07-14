@@ -2,12 +2,12 @@ from fastapi.testclient import TestClient
 from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database import get_session, Base, SQLALCHEMY_DATABASE_URL
+from app.database import get_session, Base, DB_URI
 from app.oauth2 import create_access_token
 import pytest
-# todo Create default users (user, trader, admin) try to delete user by another user
+# todo Create default users (user, admin) try to delete user by another user
 
-SQLALCHEMY_DATABASE_URL_TEST = f'{SQLALCHEMY_DATABASE_URL}_test'
+SQLALCHEMY_DATABASE_URL_TEST = f'{DB_URI}_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -58,35 +58,14 @@ def test_user2(client):
 
 
 @pytest.fixture(scope="session")
-def test_trader(client):
-    user_data = {'email': 'hello1235@gmail.com', 'password': 'password123',
-                 'scopes': ['trade']}
-    res = client.post("/users", json=user_data)
-    assert res.status_code == 201
-    new_admin = res.json()
-    new_admin['password'] = user_data['password']
-    return new_admin
-
-
-@pytest.fixture(scope="session")
 def test_admin(client):
     user_data = {'email': 'hello1230@gmail.com', 'password': 'password123',
-                 'scopes': ['trade', 'admin']}
+                 'scopes': ['admin']}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
     new_admin = res.json()
     new_admin['password'] = user_data['password']
     return new_admin
-
-
-@pytest.fixture(scope="session")
-def test_trade_access(client):
-    user_data = {'email': 'hello123@gmail.com', 'password': 'password123'}
-    res = client.post("/users", json=user_data)
-    assert res.status_code == 201
-    new_user = res.json()
-    new_user['password'] = user_data['password']
-    return new_user
 
 
 @pytest.fixture
@@ -99,20 +78,6 @@ def authorized_client(client, token):
     client.headers = {
         **client.headers,
         "Authorization": f"Bearer {token}"
-    }
-    return client
-
-
-@pytest.fixture
-def trade_token(test_trader):
-    return create_access_token({"user_id": test_trader["id"], "scopes": ["trade"]})
-
-
-@pytest.fixture
-def authorized_trade_client(client, trade_token):
-    client.headers = {
-        **client.headers,
-        "Authorization": f"Bearer {trade_token}"
     }
     return client
 

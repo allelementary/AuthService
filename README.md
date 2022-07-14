@@ -13,7 +13,6 @@ Auth service is authentication microservice for Trading App
 ## Available roles
 
 - Base
-- Trade
 - Admin
 
 ## Contacts

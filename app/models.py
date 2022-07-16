@@ -14,4 +14,4 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
     def __repr__(self):
-        return f"{self.__tablename__}"
+        return f"{self.__tablename__}{self.id}"

@@ -1,11 +1,12 @@
+import pytest
 from fastapi.testclient import TestClient
-from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from app.main import app
 from app.database import get_session, Base, DB_URI
 from app.oauth2 import create_access_token
-import pytest
-# todo Create default users (user, admin) try to delete user by another user
+from tests.test_data import users
 
 SQLALCHEMY_DATABASE_URL_TEST = f'{DB_URI}_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
@@ -39,7 +40,7 @@ def client(session):
 
 @pytest.fixture(scope="session")
 def test_user(client):
-    user_data = {'email': 'hello1234@gmail.com', 'password': 'password123'}
+    user_data = {'email': users[0].email, 'password': users[0].password}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
     new_user = res.json()
@@ -49,7 +50,7 @@ def test_user(client):
 
 @pytest.fixture(scope="session")
 def test_user2(client):
-    user_data = {'email': 'hello321@gmail.com', 'password': 'password123'}
+    user_data = {'email': users[1].email, 'password': users[1].password}
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
     new_user = res.json()
@@ -59,8 +60,11 @@ def test_user2(client):
 
 @pytest.fixture(scope="session")
 def test_admin(client):
-    user_data = {'email': 'hello1230@gmail.com', 'password': 'password123',
-                 'scopes': ['admin']}
+    user_data = {
+        'email': users[2].email,
+        'password': users[2].password,
+        'scopes': users[2].scopes
+    }
     res = client.post("/users", json=user_data)
     assert res.status_code == 201
     new_admin = res.json()

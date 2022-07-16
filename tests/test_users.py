@@ -2,7 +2,7 @@ import pytest
 from jose import jwt
 from app import schemas
 from app.config import settings
-# todo write tests on update_user, get_user
+from tests.test_data import users
 
 
 def test_root(client):
@@ -11,19 +11,24 @@ def test_root(client):
 
 
 def test_create_user(client):
-    email = 'hello123@gmail.com'
-    password = 'password123'
     res = client.post(
-        '/users', json={'email': email, 'password': password})
+        '/users', json={
+            'email': users[4].email,
+            'password': users[4].password
+        }
+    )
     new_user = schemas.UserOut(**res.json())
-    assert new_user.email == email
+    assert new_user.email == users[4].email
     assert res.status_code == 201
 
 
 def test_login_user(test_user, client):
     res = client.post(
-        '/login', data={'username': test_user['email'],
-                        'password': test_user['password']})
+        '/login', data={
+            'username': users[0].email,
+            'password': users[0].password
+        }
+    )
     login_res = schemas.Token(**res.json())
     payload = jwt.decode(login_res.access_token, settings.secret_key, [settings.algorithm])
     idx: str = payload.get("user_id")
@@ -63,3 +68,23 @@ def test_update_user_permission(
 def test_admin_access(authorized_admin_client):
     response = authorized_admin_client.get("/test-admin-access")
     assert response.status_code == 200
+
+
+def test_get_user(authorized_client, test_user):
+    url = f"/users/{test_user['id']}"
+    response = authorized_client.get(url)
+    assert response.status_code == 200
+    assert response.json()['email'] == users[0].email
+    assert response.json()['id'] == test_user['id']
+
+
+def test_update_user(authorized_client, test_user):
+    url = f"/users/{test_user['id']}"
+    data = {
+        "idx": test_user['id'],
+        "email": users[3].email,
+        "password": users[3].password
+    }
+    response = authorized_client.put(url, json=data)
+    assert response.status_code == 201
+    assert response.json()['email'] == users[3].email

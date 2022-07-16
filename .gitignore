@@ -11,3 +11,4 @@ todo.py
 /tests/test.py
 .pytest_cache
 .DS_Store
+.coverage

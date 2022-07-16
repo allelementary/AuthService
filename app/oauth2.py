@@ -1,16 +1,16 @@
 import uuid
-from jose import JWSError, jwt, JWTError
 from datetime import datetime, timedelta
-from pydantic import ValidationError
-from fastapi import Depends, status, HTTPException
+
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
+from jose import JWSError, JWTError, jwt
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app import schemas, database, models, config
-
+from app import config, database, models, schemas
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='login',
+    tokenUrl="login",
     scopes={"admin": "ultimate access"},
 )
 
@@ -41,9 +41,9 @@ def verify_access_token(token: str, credentials_exception: HTTPException):
 
 
 async def get_current_user(
-        security_scopes: SecurityScopes,
-        token: str = Depends(oauth2_scheme),
-        db: Session = Depends(database.get_session),
+    security_scopes: SecurityScopes,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(database.get_session),
 ):
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
@@ -82,6 +82,6 @@ def _get_user(db, idx: uuid):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id: {idx} does not exist"
+            detail=f"User with id: {idx} does not exist",
         )
     return user

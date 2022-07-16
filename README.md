@@ -47,6 +47,29 @@ uvicorn app.main:app
 http://127.0.0.1:8000/docs
 ```
 
+## Routes
+
+#### POST
+
+- `/login`
+- `/users`
+
+#### GET
+
+- `/users/{idx}`
+
+#### PUT
+
+- `/users/{idx}`
+
+#### PATCH
+
+- `/update-permission/{idx}`
+
+#### Test Route GET
+
+- `/test-admin-access`
+
 ## Build with
 
 - Python 3.10

@@ -85,3 +85,4 @@ def _get_user(db, idx: uuid):
             detail=f"User with id: {idx} does not exist",
         )
     return user
+

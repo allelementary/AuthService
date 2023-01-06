@@ -163,6 +163,3 @@ def disable_access(
     user_query.update({"scopes": []}, synchronize_session=False)
     db.commit()
     return user
-
-
-# 597f6b38-531d-49b5-b8a9-9f3ce7b901c8
